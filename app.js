@@ -23,26 +23,30 @@ let pilihanButang = [];
 let pemain;
 let jawapanBetul;
 let level = 1, skor = 0, highScore = 0;
-let masa = 10; // 10 saat untuk setiap soalan
+let masa = 10; 
 let masaText, masaBar, masaEvent;
 let bunyiBetul, bunyiSalah, bunyiSorak;
 let isGameOver = false;
 
 function preload() {
-    // Muat turun fail Audio & Sprite dari pelayan ujian Phaser
     this.load.audio('ting', 'https://labs.phaser.io/assets/audio/SoundEffects/p-ping.mp3');
-    this.load.audio('buzz', 'https://labs.phaser.io/assets/audio/SoundEffects/magical_horror_audiosprite.mp3'); // Kesan salah
-    this.load.audio('cheer', 'https://labs.phaser.io/assets/audio/SoundEffects/key.mp3'); // Ganti dengan bunyi naik level
+    this.load.audio('buzz', 'https://labs.phaser.io/assets/audio/SoundEffects/magical_horror_audiosprite.mp3'); 
+    this.load.audio('cheer', 'https://labs.phaser.io/assets/audio/SoundEffects/key.mp3'); 
     this.load.image('spriteMurid', 'https://labs.phaser.io/assets/sprites/dude.png');
 }
 
 function create() {
     isGameOver = false;
     
-    // Dapatkan High Score dari memori tablet/telefon
-    let simpananSkor = localStorage.getItem('congakHighScore');
-    if (simpananSkor) {
-        highScore = parseInt(simpananSkor);
+    // Sistem pelindung memori (try...catch) untuk Incognito Mode
+    try {
+        let simpananSkor = localStorage.getItem('congakHighScore');
+        if (simpananSkor) {
+            highScore = parseInt(simpananSkor);
+        }
+    } catch (error) {
+        console.log("Incognito Mode: Memori skor ditutup.");
+        highScore = 0; 
     }
 
     // Audio
@@ -62,14 +66,14 @@ function create() {
     highScoreText = this.add.text(30, 80, `Rekod Tertinggi: ${highScore}`, { fontSize: '30px', fill: '#ef4444', fontStyle: 'bold' });
 
     // Pemasa (Timer Bar & Text)
-    this.add.rectangle(400, 150, 600, 30, 0x94a3b8).setOrigin(0.5); // Tapak kelabu
-    masaBar = this.add.rectangle(100, 150, 600, 30, 0xef4444).setOrigin(0, 0.5); // Bar merah
+    this.add.rectangle(400, 150, 600, 30, 0x94a3b8).setOrigin(0.5); 
+    masaBar = this.add.rectangle(100, 150, 600, 30, 0xef4444).setOrigin(0, 0.5); 
     masaText = this.add.text(400, 150, '10s', { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
 
     // Soalan
     soalanText = this.add.text(400, 350, 'Soalan', { fontSize: '120px', fill: '#1e3a8a', fontStyle: 'bold', align: 'center' }).setOrigin(0.5);
 
-    // Butang Pilihan
+    // Butang Pilihan (3 Butang)
     for(let i=0; i<3; i++) {
         let butangBg = this.add.rectangle(200 + (i * 200), 650, 160, 140, 0x3b82f6, 1).setInteractive().setOrigin(0.5);
         let teksButang = this.add.text(200 + (i * 200), 650, '0', { fontSize: '70px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
@@ -88,7 +92,7 @@ function create() {
 }
 
 function update() {
-    // Logik kemaskini jika perlu
+    // Kosong untuk setakat ini
 }
 
 function mulaTimer(scene) {
@@ -104,7 +108,6 @@ function mulaTimer(scene) {
             masa--;
             masaText.setText(masa + 's');
             
-            // Animasi bar masa berkurang
             scene.tweens.add({
                 targets: masaBar,
                 width: (masa / 10) * 600,
@@ -158,7 +161,6 @@ function semakJawapan(scene, tekaan) {
         bunyiBetul.play();
         skor += 10;
         
-        // Naik level
         if(skor % 50 === 0) {
             level++;
             bunyiSorak.play();
@@ -191,15 +193,18 @@ function tamatPermainan(scene) {
     scene.cameras.main.shake(400, 0.03);
     if(masaEvent) masaEvent.remove();
 
-    // Simpan High Score
-    if (skor > highScore) {
-        highScore = skor;
-        localStorage.setItem('congakHighScore', highScore);
+    // Sistem pelindung memori semasa menyimpan
+    try {
+        if (skor > highScore) {
+            highScore = skor;
+            localStorage.setItem('congakHighScore', highScore);
+        }
+    } catch (error) {
+        console.log("Incognito Mode: Gagal simpan skor.");
     }
 
-    // Bina Sijil Digital (1 Halaman Skrin Penuh)
     let sijilBg = scene.add.rectangle(400, 600, 700, 900, 0xffffff).setOrigin(0.5);
-    sijilBg.setStrokeStyle(10, 0x1e3a8a); // Bingkai sijil
+    sijilBg.setStrokeStyle(10, 0x1e3a8a); 
 
     scene.add.text(400, 250, 'SIJIL PENCAPAIAN', { fontSize: '60px', fill: '#1e3a8a', fontStyle: 'bold' }).setOrigin(0.5);
     scene.add.text(400, 350, 'Dianugerahkan kepada peserta atas pencapaian:', { fontSize: '24px', fill: '#475569' }).setOrigin(0.5);

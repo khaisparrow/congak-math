@@ -1,147 +1,173 @@
-// Variabel Permainan
-let currentLevel = 1;
-let lives = 3;
-let correctAnswer = 0;
-let step = 0; // Langkah avatar (0 hingga 5)
+// Konfigurasi Asas Phaser
+const config = {
+    type: Phaser.AUTO,
+    scale: {
+        mode: Phaser.Scale.FIT, // Game akan auto-fit pada skrin tablet/telefon
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 800,
+        height: 1200
+    },
+    backgroundColor: '#e0f2fe', // Biru awan
+    parent: 'game-container',
+    scene: {
+        create: create,
+        update: update
+    }
+};
 
-// Elemen DOM (UI)
-const body = document.getElementById('game-body');
-const startScreen = document.getElementById('start-screen');
-const gameScreen = document.getElementById('game-screen');
-const endScreen = document.getElementById('end-screen');
-const gameContainer = document.getElementById('game-container');
+// Mulakan Enjin Game
+const game = new Phaser.Game(config);
 
-const questionDisplay = document.getElementById('question-display');
-const answerInput = document.getElementById('answer-input');
-const submitBtn = document.getElementById('submit-btn');
-const levelDisplay = document.getElementById('level-display');
-const livesDisplay = document.getElementById('lives-display');
-const finalLevelDisplay = document.getElementById('final-level');
+// Variabel Global
+let soalanText;
+let pilihanButang = [];
+let pemain;
+let jawapanBetul;
+let level = 1;
+let skor = 0;
+let skorText;
+let awanBawah;
 
-const progressBar = document.getElementById('progress-bar');
-const runnerAvatar = document.getElementById('runner-avatar');
+function create() {
+    // 1. LUKIS LATAR BELAKANG & TREK LUMBA
+    // Kita buat padang rumput hijau di bahagian bawah skrin
+    this.add.rectangle(400, 1050, 800, 300, 0x4ade80); 
+    // Garisan balapan (putih)
+    this.add.rectangle(400, 950, 800, 10, 0xffffff);
 
-// Fungsi Mula Main
-function startGame() {
-    currentLevel = 1;
-    lives = 3;
-    step = 0;
-    
-    updateUI();
-    
-    startScreen.classList.add('hidden');
-    endScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
-    
-    generateQuestion();
+    // 2. MASUKKAN KARAKTER (Guna Emoji Pelari)
+    pemain = this.add.text(50, 820, '🏃', { fontSize: '120px' });
+
+    // 3. PAPARAN SKOR & LEVEL
+    skorText = this.add.text(40, 40, 'Skor: 0 | Level: 1', { 
+        fontSize: '48px', 
+        fill: '#1e3a8a', 
+        fontStyle: 'bold' 
+    });
+
+    // 4. PAPARAN SOALAN
+    soalanText = this.add.text(400, 300, 'Soalan', { 
+        fontSize: '100px', 
+        fill: '#1e3a8a', 
+        fontStyle: 'bold',
+        align: 'center'
+    }).setOrigin(0.5); // .setOrigin(0.5) memastikan teks berada betul-betul di tengah koordinat
+
+    // 5. BINA BUTANG PILIHAN (3 Butang)
+    for(let i=0; i<3; i++) {
+        // Latar butang biru
+        let butangBg = this.add.rectangle(200 + (i * 200), 550, 160, 120, 0x3b82f6, 1)
+            .setInteractive()
+            .setOrigin(0.5);
+        
+        // Teks jawapan di atas butang
+        let teksButang = this.add.text(200 + (i * 200), 550, '0', {
+            fontSize: '64px', fill: '#ffffff', fontStyle: 'bold'
+        }).setOrigin(0.5);
+
+        // Kesan visual bila butang ditekan (hover/klik)
+        butangBg.on('pointerdown', () => {
+            butangBg.setFillStyle(0x1d4ed8); // Warna jadi biru gelap sekejap
+            setTimeout(() => butangBg.setFillStyle(0x3b82f6), 150);
+            semakJawapan(this, teksButang.text);
+        });
+
+        pilihanButang.push(teksButang); // Simpan rujukan teks untuk ditukar nanti
+    }
+
+    // Mula jana soalan pertama
+    janaSoalan();
 }
 
-// Fungsi Kembali ke Lobi
-function resetToLobby() {
-    endScreen.classList.add('hidden');
-    startScreen.classList.remove('hidden');
+function update() {
+    // Fungsi ini dipanggil 60 kali sesaat (60fps). 
+    // Sesuai untuk semak pelanggaran graviti, tapi kita belum guna untuk game logik ini.
 }
 
-// Fungsi Jana Soalan
-function generateQuestion() {
+// FUNGSI LOGIK: Jana Soalan Asas Tambah & Tolak
+function janaSoalan() {
     let num1, num2, operator;
     
-    if (currentLevel === 1) {
-        num1 = Math.floor(Math.random() * 9) + 1;
-        num2 = Math.floor(Math.random() * (10 - num1)); 
-        operator = '+';
-    } else if (currentLevel === 2) {
-        num1 = Math.floor(Math.random() * 20) + 1;
+    if(level === 1) {
+        num1 = Math.floor(Math.random() * 10) + 1;
         num2 = Math.floor(Math.random() * 10) + 1;
-        operator = Math.random() > 0.5 ? '+' : '-';
-        if (operator === '-' && num1 < num2) [num1, num2] = [num2, num1];
+        operator = '+';
     } else {
-        num1 = Math.floor(Math.random() * 50) + 1;
-        num2 = Math.floor(Math.random() * 30) + 1;
+        num1 = Math.floor(Math.random() * 20) + 1;
+        num2 = Math.floor(Math.random() * 20) + 1;
         operator = Math.random() > 0.5 ? '+' : '-';
         if (operator === '-' && num1 < num2) [num1, num2] = [num2, num1];
     }
 
-    correctAnswer = operator === '+' ? num1 + num2 : num1 - num2;
-    questionDisplay.innerText = `${num1} ${operator} ${num2}`;
-    answerInput.value = '';
-    answerInput.focus();
+    jawapanBetul = operator === '+' ? num1 + num2 : num1 - num2;
+    soalanText.setText(`${num1} ${operator} ${num2} = ?`);
+
+    // Hasilkan 2 jawapan pengacau (salah) yang logik
+    let pilihan = [jawapanBetul];
+    while(pilihan.length < 3) {
+        let salah = jawapanBetul + (Math.floor(Math.random() * 10) - 5);
+        if(salah !== jawapanBetul && salah > 0 && !pilihan.includes(salah)) {
+            pilihan.push(salah);
+        }
+    }
+
+    // Gaulkan kedudukan jawapan supaya tidak sentiasa di A
+    pilihan.sort(() => Math.random() - 0.5);
+
+    // Kemaskini teks pada 3 butang
+    for(let i=0; i<3; i++) {
+        pilihanButang[i].setText(pilihan[i]);
+    }
 }
 
-// Fungsi Kemaskini Paparan (Level, Nyawa, Avatar)
-function updateUI() {
-    levelDisplay.innerText = currentLevel;
-    
-    // Papar jumlah Hati
-    let hearts = '';
-    for(let i = 0; i < lives; i++) hearts += '❤️';
-    for(let i = lives; i < 3; i++) hearts += '🖤'; // Hati kosong jika hilang nyawa
-    livesDisplay.innerText = hearts;
-
-    // Gerakkan avatar (Setiap level perlukan 5 langkah)
-    let percentage = (step / 5) * 100;
-    progressBar.style.width = `${percentage}%`;
-    
-    // Elak avatar terkeluar dari landasan
-    let avatarPosition = percentage;
-    if(avatarPosition >= 90) avatarPosition = 90; 
-    runnerAvatar.style.left = `${avatarPosition}%`;
-}
-
-// Fungsi Semak Jawapan
-function checkAnswer() {
-    const userAnswer = parseInt(answerInput.value);
-    if (isNaN(userAnswer)) return;
-
-    if (userAnswer === correctAnswer) {
+// FUNGSI LOGIK: Semak Jawapan & Animasi
+function semakJawapan(scene, tekaan) {
+    if(parseInt(tekaan) === jawapanBetul) {
+        
         // JAWAPAN BETUL
-        step++;
-        flashBackground('bg-green-100'); // Skrin hijau sekejap
-        
-        if (step >= 5) {
-            // Naik Level!
-            currentLevel++;
-            step = 0;
-            // Boleh tambah bunyi di sini pada masa akan datang
+        skor += 10;
+        if(skor % 50 === 0) level++; // Naik level setiap 5 soalan betul
+        skorText.setText(`Skor: ${skor} | Level: ${level}`);
+
+        // Animasi Teks Terapung (Berjaya)
+        let hebat = scene.add.text(400, 450, 'HEBAT! 🎉', { fontSize: '80px', fill: '#22c55e', fontStyle: 'bold' }).setOrigin(0.5);
+        scene.tweens.add({
+            targets: hebat,
+            y: 200,          // Naik ke atas
+            alpha: 0,        // Perlahan-lahan hilang
+            duration: 1000,
+            onComplete: () => hebat.destroy()
+        });
+
+        // Animasi Pemain Berlari Ke Depan
+        scene.tweens.add({
+            targets: pemain,
+            x: pemain.x + 40,
+            duration: 300,
+            ease: 'Power2'
+        });
+
+        // Apabila pemain dah hampir ke hujung skrin, hantar dia kembali ke belakang
+        if(pemain.x > 650) {
+            pemain.x = 50;
         }
+
+        setTimeout(janaSoalan, 500); // Soalan baru muncul selepas separuh saat
+
     } else {
-        // JAWAPAN SALAH
-        lives--;
-        flashBackground('bg-red-100'); // Skrin merah sekejap
         
-        // Animasi gegar
-        gameContainer.classList.add('shake-animation');
-        setTimeout(() => gameContainer.classList.remove('shake-animation'), 300);
+        // JAWAPAN SALAH
+        // Enjin Phaser menggegarkan kamera skrin! Kesan yang sangat disukai kanak-kanak
+        scene.cameras.main.shake(300, 0.02);
 
-        if (lives <= 0) {
-            gameOver();
-            return;
-        }
+        // Animasi Teks Terapung (Salah)
+        let salah = scene.add.text(400, 450, 'CUBA LAGI!', { fontSize: '80px', fill: '#ef4444', fontStyle: 'bold' }).setOrigin(0.5);
+        scene.tweens.add({
+            targets: salah,
+            y: 400,
+            alpha: 0,
+            duration: 1000,
+            onComplete: () => salah.destroy()
+        });
     }
-
-    updateUI();
-    generateQuestion();
 }
-
-// Fungsi Latar Belakang Berkelip
-function flashBackground(colorClass) {
-    body.classList.remove('bg-blue-50');
-    body.classList.add(colorClass);
-    setTimeout(() => {
-        body.classList.remove(colorClass);
-        body.classList.add('bg-blue-50');
-    }, 300);
-}
-
-// Fungsi Game Over
-function gameOver() {
-    finalLevelDisplay.innerText = currentLevel;
-    gameScreen.classList.add('hidden');
-    endScreen.classList.remove('hidden');
-}
-
-// Event Listeners untuk Butang Semak
-submitBtn.addEventListener('click', checkAnswer);
-answerInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') checkAnswer();
-});

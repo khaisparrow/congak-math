@@ -2,76 +2,31 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Congak Pintar</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Congak Pintar: Edisi Lumba Lari</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3b82f6">
     <style>
-        /* Animasi gegar jika jawapan salah */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000; /* Latar hitam supaya canvas menonjol */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
-        .shake-animation { animation: shake 0.3s; }
-        
-        /* Transition latar belakang */
-        body { transition: background-color 0.3s ease; }
+        #game-container {
+            width: 100%;
+            height: 100%;
+        }
     </style>
+    <!-- Masukkan perpustakaan Phaser.js -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 </head>
-<body id="game-body" class="bg-blue-50 flex flex-col items-center justify-center min-h-screen font-sans p-4">
-
-    <!-- 1. SKRIN MULA (LOBBY) -->
-    <div id="start-screen" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
-        <div class="text-6xl mb-4">🚀</div>
-        <h1 class="text-4xl font-bold text-blue-600 mb-2">Congak Pintar</h1>
-        <p class="text-gray-500 mb-8">Uji kehebatan matematik anda!</p>
-        <button onclick="startGame()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg transition-transform transform hover:scale-105">
-            Mula Main!
-        </button>
-    </div>
-
-    <!-- 2. SKRIN PERMAINAN -->
-    <div id="game-screen" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center hidden">
-        
-        <!-- Info Bar: Nyawa & Level -->
-        <div class="flex justify-between items-center mb-4">
-            <div id="lives-display" class="text-2xl tracking-widest">❤️❤️❤️</div>
-            <div class="text-lg font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">Level <span id="level-display" class="text-blue-500">1</span></div>
-        </div>
-
-        <!-- Trek Lumba (Progress Bar) -->
-        <div class="w-full bg-gray-200 rounded-full h-4 mb-6 relative">
-            <div id="progress-bar" class="bg-green-400 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
-            <div id="runner-avatar" class="absolute -top-3 text-2xl transition-all duration-500" style="left: 0%">🏃</div>
-        </div>
-
-        <!-- Paparan Soalan -->
-        <div id="game-container" class="transition-transform duration-300">
-            <div class="text-5xl font-bold text-gray-800 mb-6 tracking-widest" id="question-display">
-                <!-- Soalan -->
-            </div>
-
-            <input type="number" id="answer-input" placeholder="Jawapan..." class="w-full text-center text-2xl p-3 border-4 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 mb-4 transition-colors">
-
-            <button id="submit-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl text-xl shadow-md transition-transform transform hover:scale-105 active:scale-95">
-                Semak
-            </button>
-        </div>
-    </div>
-
-    <!-- 3. SKRIN TAMAT (GAME OVER) -->
-    <div id="end-screen" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center hidden">
-        <div class="text-6xl mb-4">💥</div>
-        <h2 class="text-3xl font-bold text-red-500 mb-2">Permainan Tamat!</h2>
-        <p class="text-gray-600 text-lg mb-2">Anda telah mencapai</p>
-        <p class="text-2xl font-bold text-blue-600 mb-6">Level <span id="final-level">1</span></p>
-        
-        <button onclick="resetToLobby()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 rounded-xl text-xl transition-transform transform hover:scale-105">
-            Main Semula
-        </button>
-    </div>
+<body>
+    <div id="game-container"></div>
 
     <script src="app.js"></script>
     <script>

@@ -9,7 +9,6 @@ const config = {
     backgroundColor: '#e0f2fe',
     parent: 'game-container',
     scene: {
-        preload: preload,
         create: create,
         update: update
     }
@@ -25,47 +24,33 @@ let jawapanBetul;
 let level = 1, skor = 0, highScore = 0;
 let masa = 10; 
 let masaText, masaBar, masaEvent;
-let bunyiBetul, bunyiSalah, bunyiSorak;
 let isGameOver = false;
-
-function preload() {
-    this.load.audio('ting', 'https://labs.phaser.io/assets/audio/SoundEffects/p-ping.mp3');
-    this.load.audio('buzz', 'https://labs.phaser.io/assets/audio/SoundEffects/magical_horror_audiosprite.mp3'); 
-    this.load.audio('cheer', 'https://labs.phaser.io/assets/audio/SoundEffects/key.mp3'); 
-    this.load.image('spriteMurid', 'https://labs.phaser.io/assets/sprites/dude.png');
-}
 
 function create() {
     isGameOver = false;
     
-    // Sistem pelindung memori (try...catch) untuk Incognito Mode
+    // Sistem pelindung memori
     try {
         let simpananSkor = localStorage.getItem('congakHighScore');
         if (simpananSkor) {
             highScore = parseInt(simpananSkor);
         }
     } catch (error) {
-        console.log("Incognito Mode: Memori skor ditutup.");
         highScore = 0; 
     }
-
-    // Audio
-    bunyiBetul = this.sound.add('ting');
-    bunyiSalah = this.sound.add('buzz');
-    bunyiSorak = this.sound.add('cheer');
 
     // Latar & Trek
     this.add.rectangle(400, 1050, 800, 300, 0x4ade80); 
     this.add.rectangle(400, 950, 800, 10, 0xffffff);
 
-    // Karakter Pemain
-    pemain = this.add.image(100, 900, 'spriteMurid').setScale(2);
+    // Guna Emoji Semula (Bebas dari pautan luar)
+    pemain = this.add.text(50, 820, '🏃', { fontSize: '120px' });
 
     // Papan Skor & Level
     skorText = this.add.text(30, 30, `Skor: ${skor} | Level: ${level}`, { fontSize: '40px', fill: '#1e3a8a', fontStyle: 'bold' });
     highScoreText = this.add.text(30, 80, `Rekod Tertinggi: ${highScore}`, { fontSize: '30px', fill: '#ef4444', fontStyle: 'bold' });
 
-    // Pemasa (Timer Bar & Text)
+    // Pemasa
     this.add.rectangle(400, 150, 600, 30, 0x94a3b8).setOrigin(0.5); 
     masaBar = this.add.rectangle(100, 150, 600, 30, 0xef4444).setOrigin(0, 0.5); 
     masaText = this.add.text(400, 150, '10s', { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
@@ -73,7 +58,7 @@ function create() {
     // Soalan
     soalanText = this.add.text(400, 350, 'Soalan', { fontSize: '120px', fill: '#1e3a8a', fontStyle: 'bold', align: 'center' }).setOrigin(0.5);
 
-    // Butang Pilihan (3 Butang)
+    // Butang Pilihan
     for(let i=0; i<3; i++) {
         let butangBg = this.add.rectangle(200 + (i * 200), 650, 160, 140, 0x3b82f6, 1).setInteractive().setOrigin(0.5);
         let teksButang = this.add.text(200 + (i * 200), 650, '0', { fontSize: '70px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
@@ -91,9 +76,7 @@ function create() {
     janaSoalan(this);
 }
 
-function update() {
-    // Kosong untuk setakat ini
-}
+function update() {}
 
 function mulaTimer(scene) {
     if (masaEvent) masaEvent.remove();
@@ -158,12 +141,10 @@ function janaSoalan(scene) {
 function semakJawapan(scene, tekaan) {
     if(parseInt(tekaan) === jawapanBetul) {
         // BETUL
-        bunyiBetul.play();
         skor += 10;
         
         if(skor % 50 === 0) {
             level++;
-            bunyiSorak.play();
             let naikLevel = scene.add.text(400, 500, 'LEVEL UP!', { fontSize: '70px', fill: '#eab308', fontStyle: 'bold' }).setOrigin(0.5);
             scene.tweens.add({ targets: naikLevel, y: 300, alpha: 0, duration: 1500, onComplete: () => naikLevel.destroy() });
         }
@@ -177,7 +158,7 @@ function semakJawapan(scene, tekaan) {
             ease: 'Power2'
         });
 
-        if(pemain.x > 700) pemain.x = 100;
+        if(pemain.x > 700) pemain.x = 50;
 
         janaSoalan(scene);
 
@@ -189,18 +170,16 @@ function semakJawapan(scene, tekaan) {
 
 function tamatPermainan(scene) {
     isGameOver = true;
-    bunyiSalah.play();
     scene.cameras.main.shake(400, 0.03);
     if(masaEvent) masaEvent.remove();
 
-    // Sistem pelindung memori semasa menyimpan
     try {
         if (skor > highScore) {
             highScore = skor;
             localStorage.setItem('congakHighScore', highScore);
         }
     } catch (error) {
-        console.log("Incognito Mode: Gagal simpan skor.");
+        console.log("Memori skor ditutup.");
     }
 
     let sijilBg = scene.add.rectangle(400, 600, 700, 900, 0xffffff).setOrigin(0.5);

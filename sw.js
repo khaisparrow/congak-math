@@ -1,9 +1,11 @@
-const CACHE_NAME = 'congak-cache-v1';
+const CACHE_NAME = 'congak-cache-v3';
 const urlsToCache = [
   './',
   './index.html',
   './app.js',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',  // Tambah baris ini
+  './icon-512.png'   // Tambah baris ini
 ];
 
 self.addEventListener('install', event => {

@@ -7,8 +7,13 @@
   "theme_color": "#3b82f6",
   "icons": [
     {
-      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Apple_logo_grey.svg/144px-Apple_logo_grey.svg.png", 
-      "sizes": "144x144",
+      "src": "./icon01.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon02.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]

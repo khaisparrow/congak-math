@@ -6,32 +6,52 @@ const MenuScene = {
     create: function() {
         this.cameras.main.setBackgroundColor('#e0f2fe'); // Latar biru awan
         
+        // 🌟 BINA TEKSTUR AWAN (Hanya bina sekali)
+        if (!this.textures.exists('awan')) {
+            let g = this.make.graphics({x: 0, y: 0, add: false});
+            g.fillStyle(0xffffff, 0.5); // Warna putih separa lutsinar
+            g.fillCircle(40, 40, 40);
+            g.fillCircle(90, 40, 60);
+            g.fillCircle(140, 40, 40);
+            g.generateTexture('awan', 180, 100);
+        }
+
+        // 🌟 LATAR BERGERAK (TileSprite)
+        this.bgAwan = this.add.tileSprite(400, 600, 800, 1200, 'awan');
+        
         // Ikon Roket dengan animasi terapung
         let ikon = this.add.text(400, 350, '🚀', { fontSize: '150px' }).setOrigin(0.5);
         this.tweens.add({
             targets: ikon,
-            y: 320,          // Naik sikit
-            yoyo: true,      // Turun balik
-            repeat: -1,      // Ulang sampai bila-bila
+            y: 320,          
+            yoyo: true,      
+            repeat: -1,      
             duration: 1000,
             ease: 'Sine.easeInOut'
         });
         
-        // Teks Tajuk
-        this.add.text(400, 550, 'CONGAK PINTAR', { fontSize: '80px', fill: '#1e3a8a', fontStyle: 'bold' }).setOrigin(0.5);
+        // Teks Tajuk (Ada garisan tepi putih supaya timbul)
+        this.add.text(400, 550, 'CONGAK PINTAR', { 
+            fontSize: '80px', fill: '#1e3a8a', fontStyle: 'bold', stroke: '#ffffff', strokeThickness: 8 
+        }).setOrigin(0.5);
         this.add.text(400, 650, 'Cabaran Matematik Pantas', { fontSize: '35px', fill: '#475569' }).setOrigin(0.5);
         
         // Butang Mula
         let mulaBg = this.add.rectangle(400, 850, 400, 120, 0x3b82f6, 1).setInteractive().setOrigin(0.5);
         this.add.text(400, 850, 'MULA MAIN', { fontSize: '50px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
         
-        // Fungsi klik butang mula
         mulaBg.on('pointerdown', () => {
             mulaBg.setFillStyle(0x1d4ed8);
             setTimeout(() => {
-                this.scene.start('Game'); // Lompat ke Babak Permainan
+                this.scene.start('Game'); 
             }, 150);
         });
+    },
+    // Fungsi update untuk mengerakkan awan di Menu
+    update: function() {
+        if (this.bgAwan) {
+            this.bgAwan.tilePositionX += 1; // Kelajuan awan
+        }
     }
 };
 
@@ -41,7 +61,12 @@ const MenuScene = {
 const GameScene = {
     key: 'Game',
     create: function() {
-        // Reset semula semua nilai setiap kali main
+        // ✅ BAIKI: Warna latar belakang biru diletakkan di sini
+        this.cameras.main.setBackgroundColor('#e0f2fe'); 
+        
+        // 🌟 LATAR BERGERAK (TileSprite)
+        this.bgAwan = this.add.tileSprite(400, 600, 800, 1200, 'awan');
+
         isGameOver = false;
         level = 1;
         skor = 0;
@@ -54,14 +79,14 @@ const GameScene = {
             highScore = 0; 
         }
 
-        // Latar & Trek (Padang)
+        // Padang Rumput
         this.add.rectangle(400, 1050, 800, 300, 0x4ade80); 
         this.add.rectangle(400, 950, 800, 10, 0xffffff);
 
-        // WATAK PEMAIN - Guna Emoji Roket (Bebas dari masalah saiz & pelayan)
+        // Roket
         pemain = this.add.text(50, 850, '🚀', { fontSize: '100px' });
 
-        // Teks Skor & Pemasa
+        // UI
         skorText = this.add.text(30, 30, `Skor: ${skor} | Level: ${level}`, { fontSize: '40px', fill: '#1e3a8a', fontStyle: 'bold' });
         highScoreText = this.add.text(30, 80, `Rekod Tertinggi: ${highScore}`, { fontSize: '30px', fill: '#ef4444', fontStyle: 'bold' });
 
@@ -69,9 +94,12 @@ const GameScene = {
         masaBar = this.add.rectangle(100, 150, 600, 30, 0xef4444).setOrigin(0, 0.5); 
         masaText = this.add.text(400, 150, '10s', { fontSize: '24px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
 
-        soalanText = this.add.text(400, 350, 'Soalan', { fontSize: '120px', fill: '#1e3a8a', fontStyle: 'bold', align: 'center' }).setOrigin(0.5);
+        // ✅ BAIKI: Tulisan Soalan lebih jelas dengan garisan tepi (stroke)
+        soalanText = this.add.text(400, 350, 'Soalan', { 
+            fontSize: '130px', fill: '#1e3a8a', fontStyle: 'bold', align: 'center', stroke: '#ffffff', strokeThickness: 10 
+        }).setOrigin(0.5);
 
-        // Bina Butang Pilihan
+        // Bina Butang
         for(let i=0; i<3; i++) {
             let posX = 200 + (i * 200); 
             let posY = 650;             
@@ -86,6 +114,12 @@ const GameScene = {
         }
 
         janaSoalan(this);
+    },
+    // Fungsi update untuk mengerakkan awan semasa main
+    update: function() {
+        if (this.bgAwan && !isGameOver) {
+            this.bgAwan.tilePositionX += 2; // Bergerak lebih laju semasa main!
+        }
     }
 };
 
@@ -101,13 +135,11 @@ const config = {
         height: 1200
     },
     parent: 'game-container',
-    // Daftarkan babak di sini. Yang ditulis pertama (MenuScene) akan keluar dahulu!
     scene: [MenuScene, GameScene] 
 };
 
 const game = new Phaser.Game(config);
 
-// Variabel Global
 let soalanText, skorText, highScoreText;
 let pilihanButang = []; 
 let pemain;
@@ -116,7 +148,6 @@ let level = 1, skor = 0, highScore = 0;
 let masa = 10, masaText, masaBar, masaEvent;
 let isGameOver = false;
 
-// -- Fungsi Pemasa --
 function mulaTimer(scene) {
     if (masaEvent) masaEvent.remove(false); 
     masa = 10;
@@ -137,7 +168,6 @@ function mulaTimer(scene) {
     });
 }
 
-// -- Fungsi Jana Soalan --
 function janaSoalan(scene) {
     let num1, num2, operator;
     if(level === 1) {
@@ -170,7 +200,6 @@ function janaSoalan(scene) {
     mulaTimer(scene);
 }
 
-// -- Fungsi Semak Jawapan --
 function selectAnswer(scene, butangObj) {
     if(isGameOver) return;
     butangObj.setFillStyle(0x1d4ed8);
@@ -181,15 +210,14 @@ function selectAnswer(scene, butangObj) {
         
         if(skor % 50 === 0) {
             level++;
-            let naikLevel = scene.add.text(400, 500, 'LEVEL UP!', { fontSize: '70px', fill: '#eab308', fontStyle: 'bold' }).setOrigin(0.5);
+            let naikLevel = scene.add.text(400, 500, 'LEVEL UP!', { fontSize: '70px', fill: '#eab308', fontStyle: 'bold', stroke: '#ffffff', strokeThickness: 5 }).setOrigin(0.5);
             scene.tweens.add({ targets: naikLevel, y: 300, alpha: 0, duration: 1500, onComplete: () => naikLevel.destroy() });
         }
 
         skorText.setText(`Skor: ${skor} | Level: ${level}`);
 
-        // Gerakkan roket!
         scene.tweens.add({ targets: pemain, x: pemain.x + 60, duration: 300, ease: 'Power2' });
-        if(pemain.x > 700) pemain.x = 50; // Pusing semula ke garisan mula
+        if(pemain.x > 700) pemain.x = 50; 
 
         janaSoalan(scene);
     } else {
@@ -197,7 +225,6 @@ function selectAnswer(scene, butangObj) {
     }
 }
 
-// -- Fungsi Tamat Permainan --
 function tamatPermainan(scene) {
     isGameOver = true;
     scene.cameras.main.shake(400, 0.03);
@@ -211,7 +238,6 @@ function tamatPermainan(scene) {
         }
     } catch (error) {}
 
-    // Sijil Tamat
     let sijilBg = scene.add.rectangle(400, 600, 700, 950, 0xffffff).setOrigin(0.5);
     sijilBg.setStrokeStyle(10, 0x1e3a8a); 
 
@@ -223,7 +249,6 @@ function tamatPermainan(scene) {
     scene.add.text(400, 730, 'Tahniah dari Cikgu Khairee', { fontSize: '30px', fill: '#1e3a8a', fontStyle: 'italic' }).setOrigin(0.5);
     scene.add.text(400, 780, 'SMK Taman Desa 2', { fontSize: '24px', fill: '#1e3a8a', fontStyle: 'bold' }).setOrigin(0.5);
 
-    // Dua pilihan butang: Main Semula ATAU Kembali ke Menu
     let btnMula = scene.add.rectangle(400, 900, 400, 80, 0x22c55e).setInteractive().setOrigin(0.5);
     scene.add.text(400, 900, 'MAIN SEMULA', { fontSize: '35px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
 
@@ -232,11 +257,11 @@ function tamatPermainan(scene) {
 
     btnMula.on('pointerdown', () => {
         if (masaEvent) masaEvent.remove(false); 
-        scene.scene.restart(); // Main semula terus
+        scene.scene.restart(); 
     });
 
     btnMenu.on('pointerdown', () => {
         if (masaEvent) masaEvent.remove(false); 
-        scene.scene.start('Menu'); // Kembali ke muka hadapan
+        scene.scene.start('Menu'); 
     });
 }

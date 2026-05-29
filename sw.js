@@ -1,4 +1,4 @@
-const CACHE_NAME = 'congak-cache-v3';
+const CACHE_NAME = 'congak-cache-v4';
 const urlsToCache = [
   './',
   './index.html',

@@ -1,44 +1,65 @@
+// Variabel Permainan
 let currentLevel = 1;
-let score = 0;
+let lives = 3;
 let correctAnswer = 0;
-let streak = 0;
+let step = 0; // Langkah avatar (0 hingga 5)
+
+// Elemen DOM (UI)
+const body = document.getElementById('game-body');
+const startScreen = document.getElementById('start-screen');
+const gameScreen = document.getElementById('game-screen');
+const endScreen = document.getElementById('end-screen');
+const gameContainer = document.getElementById('game-container');
 
 const questionDisplay = document.getElementById('question-display');
 const answerInput = document.getElementById('answer-input');
 const submitBtn = document.getElementById('submit-btn');
-const feedbackMessage = document.getElementById('feedback-message');
 const levelDisplay = document.getElementById('level-display');
-const scoreDisplay = document.getElementById('score-display');
+const livesDisplay = document.getElementById('lives-display');
+const finalLevelDisplay = document.getElementById('final-level');
 
+const progressBar = document.getElementById('progress-bar');
+const runnerAvatar = document.getElementById('runner-avatar');
+
+// Fungsi Mula Main
+function startGame() {
+    currentLevel = 1;
+    lives = 3;
+    step = 0;
+    
+    updateUI();
+    
+    startScreen.classList.add('hidden');
+    endScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    
+    generateQuestion();
+}
+
+// Fungsi Kembali ke Lobi
+function resetToLobby() {
+    endScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+}
+
+// Fungsi Jana Soalan
 function generateQuestion() {
     let num1, num2, operator;
     
-    // Logik Level untuk murid Tahun 1 & 2
     if (currentLevel === 1) {
-        // Level 1: Tambah lingkungan 10
         num1 = Math.floor(Math.random() * 9) + 1;
         num2 = Math.floor(Math.random() * (10 - num1)); 
         operator = '+';
     } else if (currentLevel === 2) {
-        // Level 2: Tambah & Tolak lingkungan 20
         num1 = Math.floor(Math.random() * 20) + 1;
         num2 = Math.floor(Math.random() * 10) + 1;
         operator = Math.random() > 0.5 ? '+' : '-';
-        
-        // Elakkan jawapan negatif untuk tolak
-        if (operator === '-' && num1 < num2) {
-            let temp = num1;
-            num1 = num2;
-            num2 = temp;
-        }
+        if (operator === '-' && num1 < num2) [num1, num2] = [num2, num1];
     } else {
-        // Level 3+: Tambah & Tolak lingkungan 50
         num1 = Math.floor(Math.random() * 50) + 1;
         num2 = Math.floor(Math.random() * 30) + 1;
         operator = Math.random() > 0.5 ? '+' : '-';
-        if (operator === '-' && num1 < num2) {
-            [num1, num2] = [num2, num1];
-        }
+        if (operator === '-' && num1 < num2) [num1, num2] = [num2, num1];
     }
 
     correctAnswer = operator === '+' ? num1 + num2 : num1 - num2;
@@ -47,41 +68,80 @@ function generateQuestion() {
     answerInput.focus();
 }
 
+// Fungsi Kemaskini Paparan (Level, Nyawa, Avatar)
+function updateUI() {
+    levelDisplay.innerText = currentLevel;
+    
+    // Papar jumlah Hati
+    let hearts = '';
+    for(let i = 0; i < lives; i++) hearts += '❤️';
+    for(let i = lives; i < 3; i++) hearts += '🖤'; // Hati kosong jika hilang nyawa
+    livesDisplay.innerText = hearts;
+
+    // Gerakkan avatar (Setiap level perlukan 5 langkah)
+    let percentage = (step / 5) * 100;
+    progressBar.style.width = `${percentage}%`;
+    
+    // Elak avatar terkeluar dari landasan
+    let avatarPosition = percentage;
+    if(avatarPosition >= 90) avatarPosition = 90; 
+    runnerAvatar.style.left = `${avatarPosition}%`;
+}
+
+// Fungsi Semak Jawapan
 function checkAnswer() {
     const userAnswer = parseInt(answerInput.value);
-    
     if (isNaN(userAnswer)) return;
 
     if (userAnswer === correctAnswer) {
-        score += 10;
-        streak++;
-        feedbackMessage.innerText = 'Betul! Hebat! 🎉';
-        feedbackMessage.className = 'mt-4 text-lg font-bold h-6 text-green-500';
+        // JAWAPAN BETUL
+        step++;
+        flashBackground('bg-green-100'); // Skrin hijau sekejap
         
-        // Naik level setiap 5 jawapan berturut-turut yang betul
-        if (streak % 5 === 0) {
+        if (step >= 5) {
+            // Naik Level!
             currentLevel++;
-            feedbackMessage.innerText = `Tahniah! Naik Level ${currentLevel}! 🚀`;
+            step = 0;
+            // Boleh tambah bunyi di sini pada masa akan datang
         }
     } else {
-        streak = 0;
-        feedbackMessage.innerText = 'Salah, cuba lagi! 💪';
-        feedbackMessage.className = 'mt-4 text-lg font-bold h-6 text-red-500';
+        // JAWAPAN SALAH
+        lives--;
+        flashBackground('bg-red-100'); // Skrin merah sekejap
+        
+        // Animasi gegar
+        gameContainer.classList.add('shake-animation');
+        setTimeout(() => gameContainer.classList.remove('shake-animation'), 300);
+
+        if (lives <= 0) {
+            gameOver();
+            return;
+        }
     }
 
-    levelDisplay.innerText = currentLevel;
-    scoreDisplay.innerText = score;
-    
-    setTimeout(() => {
-        feedbackMessage.innerText = '';
-        generateQuestion();
-    }, 1500);
+    updateUI();
+    generateQuestion();
 }
 
+// Fungsi Latar Belakang Berkelip
+function flashBackground(colorClass) {
+    body.classList.remove('bg-blue-50');
+    body.classList.add(colorClass);
+    setTimeout(() => {
+        body.classList.remove(colorClass);
+        body.classList.add('bg-blue-50');
+    }, 300);
+}
+
+// Fungsi Game Over
+function gameOver() {
+    finalLevelDisplay.innerText = currentLevel;
+    gameScreen.classList.add('hidden');
+    endScreen.classList.remove('hidden');
+}
+
+// Event Listeners untuk Butang Semak
 submitBtn.addEventListener('click', checkAnswer);
 answerInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') checkAnswer();
 });
-
-// Mulakan game
-generateQuestion();

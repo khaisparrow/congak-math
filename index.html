@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Congak Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+</head>
+<body class="bg-blue-50 flex flex-col items-center justify-center min-h-screen font-sans p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+        <h1 class="text-3xl font-bold text-blue-600 mb-2">Congak Pintar</h1>
+        
+        <div class="flex justify-between items-center mb-6 bg-gray-100 p-3 rounded-lg">
+            <span class="text-lg font-semibold text-gray-700">Level: <span id="level-display" class="text-blue-500">1</span></span>
+            <span class="text-lg font-semibold text-gray-700">Skor: <span id="score-display" class="text-green-500">0</span></span>
+        </div>
+
+        <div class="text-5xl font-bold text-gray-800 mb-6 tracking-widest" id="question-display">
+            </div>
+
+        <input type="number" id="answer-input" placeholder="Jawapan..." class="w-full text-center text-2xl p-3 border-4 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 mb-4 transition-colors">
+
+        <button id="submit-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl text-xl shadow-md transition-transform transform hover:scale-105">
+            Semak Jawapan
+        </button>
+
+        <p id="feedback-message" class="mt-4 text-lg font-bold h-6"></p>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Mendaftar Service Worker untuk PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
